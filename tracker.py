@@ -5,6 +5,7 @@ import time
 import argparse
 
 last_inspect = 0
+data = {}
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.json')
 
@@ -66,18 +67,19 @@ def update():
     global last_inspect
     last_inspect = time.time()
 
-def get_config():
+def get_config(path):
     if not os.path.isfile(CONFIG_FILE):
         return
 
-    global last_inspect
+    global last_inspect, data
     with open(CONFIG_FILE, 'r') as config_file:
         data = json.load(config_file)
-        last_inspect = data['last_inspect']
+        last_inspect = data[path]['last_inspect']
 
-def write_config():
+def write_config(path):
+    data[path] = {'last_inspect' : last_inspect}
     with open(CONFIG_FILE, 'w') as f:
-        json.dump({'last_inspect' : last_inspect}, f)
+        json.dump(data, f)
 
 
 get_files.join = os.path.join
@@ -100,13 +102,13 @@ if __name__ == "__main__":
     path = args.path
     should_update = args.update
 
-    get_config()
+    get_config(path)
     news = get_new(path, ignore_list = ignores)
 
     print ' '.join(news)
 
     if should_update:
         update()
-    write_config()
+    write_config(path)
 
 
